@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-brand: var(--brand, #1e3a5f);
+  --color-accent: var(--accent, #c8963e);
+  --color-ink: #0f172a;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+}
+
+:root {
+  --brand: #1e3a5f;
+  --accent: #c8963e;
+}
+
+html { scroll-behavior: smooth; }
+body { @apply bg-white text-slate-800 antialiased; }
+
+@utility input {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20;
+}
+@utility label { @apply mb-1 block text-sm font-medium text-slate-700; }
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary { @apply btn bg-brand text-white hover:brightness-110; }
+@utility btn-accent { @apply btn bg-accent text-white hover:brightness-110; }
+@utility btn-ghost { @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+@utility btn-danger { @apply btn border border-red-200 bg-white text-red-600 hover:bg-red-50; }
+@utility card { @apply rounded-xl border border-slate-200 bg-white shadow-sm; }
+@utility badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
+
+.prose-lite p { @apply mb-4 leading-relaxed; }
+.prose-lite h2 { @apply mb-3 mt-8 text-2xl font-semibold text-slate-900; }
+.prose-lite h3 { @apply mb-2 mt-6 text-xl font-semibold text-slate-900; }
+.prose-lite ul { @apply mb-4 list-disc space-y-1 pl-6; }
+.prose-lite a { @apply text-brand underline; }

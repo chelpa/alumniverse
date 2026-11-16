@@ -1,0 +1,207 @@
+// Broker Website Platform data model.
+// SQLite for local development. For production, change provider to "postgresql".
+// Enum-like fields are stored as strings (see src/lib/constants.ts) so the schema works on both.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Broker {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  customDomain   String?  @unique
+  email          String   @unique
+  passwordHash   String
+  name           String
+  agencyName     String?
+  tagline        String?
+  bio            String?
+  photoUrl       String?
+  phone          String?
+  whatsapp       String?
+  city           String?
+  country        String?
+  licenseNumber  String?
+  languages      String?
+  currency       String   @default("USD")
+  // Branding
+  logoUrl        String?
+  logoSvg        String?
+  primaryColor   String   @default("#1e3a5f")
+  accentColor    String   @default("#c8963e")
+  // Commercial
+  plan           String   @default("PRO") // STARTER | PRO | NETWORK
+  // Automation settings
+  notifyEmail    Boolean  @default(true)
+  notifyWhatsapp Boolean  @default(true)
+  autoReply      Boolean  @default(true)
+  chatEnabled    Boolean  @default(true)
+  published      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sessions      Session[]
+  listings      Listing[]
+  leads         Lead[]
+  chats         ChatSession[]
+  posts         Post[]
+  areas         AreaPage[]
+  savedSearches SavedSearch[]
+  outbox        OutboxMessage[]
+}
+
+model Session {
+  id        String   @id
+  brokerId  String
+  broker    Broker   @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Listing {
+  id             String   @id @default(cuid())
+  brokerId       String
+  broker         Broker   @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  slug           String
+  title          String
+  description    String   @default("")
+  price          Int
+  currency       String   @default("USD")
+  listingType    String   @default("SALE") // SALE | RENT
+  propertyType   String   @default("APARTMENT") // APARTMENT | HOUSE | LAND | COMMERCIAL | OFFICE
+  status         String   @default("ACTIVE") // ACTIVE | PENDING | SOLD | DRAFT
+  bedrooms       Int?
+  bathrooms      Int?
+  areaSqm        Int?
+  address        String?
+  city           String?
+  neighborhood   String?
+  lat            Float?
+  lng            Float?
+  features       String   @default("[]") // JSON string[]
+  photos         String   @default("[]") // JSON string[]
+  videoUrl       String?
+  virtualTourUrl String?
+  featured       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  leads Lead[]
+
+  @@unique([brokerId, slug])
+  @@index([brokerId, status])
+}
+
+model Lead {
+  id             String    @id @default(cuid())
+  brokerId       String
+  broker         Broker    @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  listingId      String?
+  listing        Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  name           String
+  email          String?
+  phone          String?
+  message        String?
+  source         String    @default("CONTACT_FORM") // CONTACT_FORM | LISTING_FORM | CHAT | SAVED_SEARCH
+  status         String    @default("NEW") // NEW | CONTACTED | QUALIFIED | CLOSED | LOST
+  intent         String?   // BUY | RENT | SELL | INVEST | OTHER
+  budget         String?
+  timeline       String?
+  score          Int?
+  summary        String?
+  notes          String?
+  autoReplySubject String?
+  autoReplyBody  String?
+  autoReplySentAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  chats ChatSession[]
+
+  @@index([brokerId, createdAt])
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  brokerId  String
+  broker    Broker   @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  messages  String   @default("[]") // JSON {role, content}[]
+  captured  String   @default("{}") // JSON of lead details captured so far
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  brokerId    String
+  broker      Broker    @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  slug        String
+  title       String
+  excerpt     String?
+  body        String
+  coverUrl    String?
+  published   Boolean   @default(true)
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([brokerId, slug])
+}
+
+model AreaPage {
+  id          String   @id @default(cuid())
+  brokerId    String
+  broker      Broker   @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  slug        String
+  name        String
+  description String
+  highlights  String   @default("[]") // JSON string[]
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([brokerId, slug])
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  brokerId  String
+  broker    Broker   @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  email     String
+  name      String?
+  query     String?
+  filters   String   @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model OutboxMessage {
+  id        String   @id @default(cuid())
+  brokerId  String?
+  broker    Broker?  @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  channel   String   // EMAIL | WHATSAPP
+  to        String
+  subject   String?
+  body      String
+  status    String   // SENT | LOGGED | FAILED
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+// Leads for the company itself (landing page: network waitlist / sales contact)
+model PlatformLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  city      String?
+  interest  String   @default("NETWORK") // NETWORK | SALES
+  message   String?
+  createdAt DateTime @default(now())
+}
