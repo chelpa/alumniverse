@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bot-nasdaq"
+version = "0.1.0"
+description = "Bot educativo de trading intradía sobre QQQ: backtest y paper trading. No opera dinero real."
+requires-python = ">=3.11"
+dependencies = [
+  "pandas>=2.1",
+  "numpy>=1.26",
+  "pyarrow>=14",
+  "PyYAML>=6",
+  "python-dotenv>=1.0",
+  "alpaca-py>=0.30",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["bot*"]
+
+[tool.setuptools.package-data]
+bot = ["config/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["bot/tests"]
+addopts = "-q"
+markers = ["alpaca: necesita claves de Alpaca y red (se salta si no están)"]

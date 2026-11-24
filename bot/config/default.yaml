@@ -1,0 +1,36 @@
+# Configuración base. Copiar y modificar para cada experimento; versionar el archivo usado.
+# Todas las horas están en America/New_York.
+
+data:
+  symbol: QQQ
+  source: alpaca          # alpaca | synthetic
+  feed: iex               # iex (plan gratis) | sip. Validar con `python -m bot probe` antes del primer backtest.
+  start: "2016-01-01"     # Alpaca entrega historia desde 2016; confirmar con `probe`.
+  end: null               # null = hasta ayer
+  intraday_timeframes: ["1Min", "5Min"]
+  benchmark_timeframe: "1Day"
+  adjustment: all         # all = ajustado por splits y dividendos (benchmark diario)
+  cache_dir: .cache/bars
+  synthetic_seed: 42      # solo para source: synthetic
+
+session:
+  timezone: America/New_York
+  open: "09:30"
+  close: "16:00"
+  flatten: "15:55"        # se usa desde la Fase 2 en las estrategias intradía
+
+backtest:
+  initial_capital: 100000.0
+  fractional_shares: true # true para comparar retornos exactos; false = acciones enteras
+
+costs:
+  slippage_bps: 0.0       # por lado (spread + deslizamiento). La Fase 2 sensibiliza este valor.
+  commission_per_share: 0.0
+  commission_min: 0.0
+
+acceptance:
+  # Fase 1: E0 en el motor vs. retorno calculado directo desde la fuente (mismas barras diarias).
+  daily_tolerance: 0.0001       # 1 pb de diferencia en el factor de crecimiento
+  # Chequeo cruzado: E0 corrido sobre barras de 1 minuto vs. las barras diarias.
+  # Mide la diferencia entre feeds/agregaciones (IEX vs. precios oficiales de apertura y cierre).
+  intraday_tolerance: 0.005     # 0,5% en el factor de crecimiento

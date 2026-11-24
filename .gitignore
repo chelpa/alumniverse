@@ -1,0 +1,17 @@
+# Credenciales: nunca al repositorio
+.env
+.env.*
+!.env.example
+
+# Caché de datos y salidas
+.cache/
+bot/reports/output/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
+dist/
